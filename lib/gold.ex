@@ -277,6 +277,15 @@ defmodule Gold do
     end
   end
 
+  def call(name, args = [_|_]) do
+    case load_config(name) do
+      :undefined ->
+        {:error, {:invalid_configuration, name}}
+      config ->
+        handle_rpc_request(args, config)
+    end
+  end
+
   ##
   # Internal functions
   ##
@@ -303,6 +312,41 @@ defmodule Gold do
       {:ok, %{status_code: code, body: body}} ->
         handle_error(code, body)
     end
+  end
+
+  defp handle_rpc_request(args = [_|_], config) do
+    %{hostname: hostname, port: port, user: user, password: password} = config
+
+    Logger.debug "Bitcoin RPC batch request for params: #{inspect args}"
+
+    command = map_args(args)
+
+    headers = [{"Authorization", "Basic " <> Base.encode64(user <> ":" <> password)}]
+
+    options = [timeout: 30000, recv_timeout: 20000]
+
+    case HTTPoison.post("http://" <> hostname <> ":" <> to_string(port) <> "/", Poison.encode!(command), headers, options) do
+      {:ok, %{status_code: 200, body: body}} ->
+        # TODO better result decode
+        Poison.decode!(body)
+      # {:ok, %{status_code: code, body: body}} ->
+      #   handle_error(code, body)
+    end
+  end
+
+  defp map_args(args) do
+    args
+    |> Enum.with_index(1)
+    |> Enum.map(fn {index, {method, params}} ->
+      params = PoisonedDecimal.poison_params(params)
+
+      %{
+        "jsonrpc": "2.0",
+        "method": to_string(method),
+        "params": params,
+        "id": index
+      }
+    end)
   end
 
   @statuses %{401 => :forbidden, 404 => :notfound, 500 => :internal_server_error}
