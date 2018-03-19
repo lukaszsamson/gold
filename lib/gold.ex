@@ -337,7 +337,7 @@ defmodule Gold do
   defp map_args(args) do
     args
     |> Enum.with_index(1)
-    |> Enum.map(fn {index, {method, params}} ->
+    |> Enum.map(fn {{method, params}, index} ->
       params = PoisonedDecimal.poison_params(params)
 
       %{
