@@ -292,7 +292,7 @@ defmodule Gold do
                 "params": params,
                 "id": 1}
 
-    headers = ["Authorization": "Basic " <> Base.encode64(user <> ":" <> password)]
+    headers = [{"Authorization", "Basic " <> Base.encode64(user <> ":" <> password)}]
 
     options = [timeout: 30000, recv_timeout: 20000]
 
