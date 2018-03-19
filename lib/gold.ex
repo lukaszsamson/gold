@@ -328,7 +328,10 @@ defmodule Gold do
     case HTTPoison.post("http://" <> hostname <> ":" <> to_string(port) <> "/", Poison.encode!(command), headers, options) do
       {:ok, %{status_code: 200, body: body}} ->
         # TODO better result decode
-        Poison.decode!(body)
+        decoded = Poison.decode!(body)
+        decoded
+        |> IO.inspect
+        |> Enum.sort_by(fn %{"id" => id} -> id end)
       # {:ok, %{status_code: code, body: body}} ->
       #   handle_error(code, body)
     end
