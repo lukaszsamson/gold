@@ -330,7 +330,6 @@ defmodule Gold do
         # TODO better result decode
         decoded = Poison.decode!(body)
         decoded
-        |> IO.inspect
         |> Enum.sort_by(fn %{"id" => id} -> id end)
       # {:ok, %{status_code: code, body: body}} ->
       #   handle_error(code, body)
